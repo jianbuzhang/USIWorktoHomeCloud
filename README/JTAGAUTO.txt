@@ -1,0 +1,137 @@
+JTAG AUTO UPDATE
+######################################################################################
+
+1.要建一個 c:\USI 的目錄,其中要放一個 Server.ini的檔用來指明要連到那一個server
+2.要在server 上建立幾個目錄
+
+  1.主目錄 USIJTAG
+  2. UPDATE\ 			底下放 UPDATE.INI & SERVER.INI 所有JTAG用的都是同一個UPDATE INI FILE
+  3. PROD\ PROJECT\VERSION   	所有的PROJECT 目錄要和JTAG.BOARD的目錄要同名
+                             	barcode.ini,version.ini
+                             	VERSION 要放 BARCODE資料 資料放的目錄要和 AEXMEN.INI中同
+  4. JTAG\INI\PROJECT\VERSION  	放 AEXMEN.INI 用來指定測試資料所要放的目錄和開啟資料的目錄
+  5. JTAG\JTAG.boards     	放開發的檔案全部複製,第一次會比較久
+  6. JTAG\AEXMEN\PROJECT\VERSION  放 aexmenager的 資料檔,用存放測試流程
+  7. AP\                     	放應用程式,編輯軟體
+  8. USIJTAG 			目錄下放所有的Link AP
+  9. README\			目錄下放說明檔
+3. PROJECT  			可依各案子來定,避免混亂
+4. VERSION  			依不同版本,chip來區分
+
+
+
+######################################################################################
+
+SERVER.INI 範例
+
+[Server]
+ ServerID=  \\127.25.1.46\USIPROJECT   ;設定SERVER分享路徑
+ USERNAME= AAA      ;登入分享目錄的使用者名稱
+ PASSWORD=  12345   ;登入分享目錄的使用者密碼
+ INIPATH= UPDATE   ;用來比對INI file 是否是最新的資料只有一個UPDATE.INI共同使用
+ UPDATE= ON / OFF   ;決定是否要連上 SERVER去更新資料
+
+######################################################################################
+
+UPDATE.INI 範例
+
+路徑規則:
+     1.前後不需要加 \ 
+     2.server.ini的serverID即為Source所在目錄
+     3.*.* 表示只複製本身目錄,不含子目錄
+     4. +表以所選 project名稱取代,但不可用在 FolderBulid 和 StartCheck
+     5. #表以所選的 version名稱取代,只能用在 VersionCheck中
+     6.各目錄資料更新的細項資料會依更的目錄放在 c:\USI 目錄下,依年月日區分
+     7. 如果要複製到不同的目錄, 則用 ; 號隔開並在分號後面指定所設的的目錄
+          1= PROD\PROJECT  ; D:\MYFOLDER\ 
+
+
+   [FolderBulid] 只在建立空目錄(含子目錄) 會在程開啟時執行 要在那建空目錄
+    1= PROD                  
+    2= JTAG\JTAG.boards  ;D:\JTAG\JTAG.boards
+    3= JTAG\AEXMEN  ;D:\JTAG\AEXMEN
+    4= AP
+   
+   [StartCheck] 最後為*.*則為本身目錄不包含子目錄 (為在沒選擇project之前所要檢驗的目錄)
+		會在程開啟時執行(依需要來設定) 
+    1=*.*
+    2= JTAG\JTAG.boards ; D:\JTAG\JTAG.boards
+
+
+   [ProjectCheck] 最後為*.*則為本身目錄不包含子目錄,如果有+號,則以所選的PROJECT 名稱取代,
+                  project 不可使用version的取代符號 #
+
+    1= AP                 
+    2= README\*.*
+    3= PROD\+\*.*    ;為了Version.ini的資料複製
+
+   [VersionCheck] 最後為*.*則為本身目錄不包含子目錄(為在選擇Version後所要檢驗的目錄) 如果有#號,則以所選的version 
+                  名稱取代,如果有+號,則以所選的PROJECT 名稱取代,用project的取代符號一定要配合version的取代符號,因
+                  為各project未必有指定的version存在,
+
+    1=PROD\+\#
+    2=JTAG\INI\+\#\*.*  ;C:\Bst32\aexman 
+    3=JTAG\AEXMEN\+\# ;D:\JTAG\AEXMEN\+\#
+
+
+#######################################################################################
+Barcode.ini  中要設定,主要是在抓JTAG目錄的CAPTION
+[control] 
+CloseAPCaption='AEX Sequencer - 1 x 32mb' 設定所要關掉的AP 其Caption名稱,這個會在使用Productver.exe時產生動作
+ 					如果沒有在選project前要關掉的AP 則這個項目可以不用設定,這個動作會試
+					圖關掉 AP並提出警告,要求重新執行PROJECT VERSION SELECT AP
+
+FCTEXEName=PUSI.exe D:\Log\JTAG\MC3000\ 這個部份的後面是設定JTAG AEX Manager log file 存放的位置在那要和,
+					AEX Manager中的 AEXMAN.INI中的PATH,這個路徑是在AEX Manager中所設定的
+					可以將這個部份存到server 如此在每次做product select 時由auto update
+					來更新 	
+
+
+    
+#########################################################################################
+Version.INI 用來使用Barcode來控制版本
+Barcode.INI 用來控制一些基本的流程 SFIS,Printer...
+
+#########################################################################################
+
+AP需求
+1.Productver.exe
+2.PBarcodefM.exe
+3.PJTAGTXT.exe
+4.PUSI.EXE
+
+#########################################################################################
+
+INI text 需求 
+1.PROD\RPOJECT\VERSION\ Barcode.ini
+2.PROD\PROJECT\ version.ini
+3.\product.txt
+4.\empty.bmp ,error.bmp, wait.bmp
+5.PROD\RPOJECT\VERSION\ FCTCommand.txt
+
+
+
+#########################################################################################
+
+            AEXMAN.INI 的設定
+#########################################################################################
+1. AEXMAN.INI 路徑在 C:\Bst32\aexman\ 中
+2. 設定這個的目的是為了使生產線在選擇了各種project 後路徑可以default指到所要測的流程那.
+
+3.在AEXMAN.INI要注意下面這些的設定,也可以在AEX Manager中先指定好,然後關掉AEX Manager,再將
+  AEXMAN.INI存檔,就可以得到所要的結果,不過要多注意一下以免搞錯了
+
+[login]
+Login=OP
+Privilege=Operator
+
+[user]
+ClearStart=yes
+ReportSaveEnd=yes
+ReportPerUnit=yes
+ReportCvtAlways=yes
+
+[session]
+ResultsDirUserDir=d:\log\jtag\mc3000
+SequenceDir=D:\JTAG\AEX Manager\mc3000-F
+

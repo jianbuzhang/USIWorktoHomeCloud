@@ -1,0 +1,26 @@
+#USI MFT TESTER TORANTO47
+#
+#errorcode 0001
+#com pause
+WAIT 23456
+com d
+wait mon>
+#sleep 2000
+com d b:ptbl_001.hex p=32
+wait mon>
+com d b:splsh001.hex p=29
+wait Download complete
+wait 23456
+com d
+wait mon>
+com sum 98300000 0x3FFFFFF
+WAIT crc32 is 0xE0B97B15
+#WAIT crc32 is 0x3BC0D171
+WAIT mon>
+com d b:diag.bin 
+wait Download complete
+wait mon>
+com dir a:
+wait mon>
+wait anyone
+END
